@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Reflection;
 using System.Xml;
-using System.Xml.Linq;
-using System.Xml.Xsl;
 using CommandLine;
 using CommandLine.Text;
 using Microsoft.Web.XmlTransform;
@@ -36,9 +32,10 @@ namespace XmlTransform
         [HelpOption('h', "help")]
         public string GetHelp()
         {
+            var ver = Assembly.GetEntryAssembly().GetName().Version.ToString();
             var text = HelpText.AutoBuild(this, (t) => HelpText.DefaultParsingErrorsHandler(this, t));
             text.Copyright = " ";
-            text.Heading = " ";
+            text.Heading = "XmlTransform " + ver;
             text.AddPostOptionsLine("You can add any number of key=value pair. They will be used to replace {key} placeholders in transform file.\n");
 
             return text.ToString();
@@ -115,12 +112,17 @@ namespace XmlTransform
 
             if (!contentsBeforeTransformation.SequenceEqual(contentsAfterTransformation))
             {
+                Console.WriteLine("Updating '{0}'", opts.OutputFile);
                 outputStream.Position = 0;
                 using (var fs = File.Create(opts.OutputFile))
                 {
                     outputStream.CopyTo(fs);
                     fs.Close();
                 }
+            }
+            else
+            {
+                Console.WriteLine("No changes made");
             }
         }
     }
